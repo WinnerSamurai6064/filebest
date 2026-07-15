@@ -40,7 +40,7 @@
   .ambient{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
   .ambient::before, .ambient::after{
     content:''; position:absolute; width:70vw; height:70vw; border-radius:50%;
-    filter:blur(70px); opacity:0.16;
+    filter:blur(70px); opacity:0.20;
   }
   .ambient::before{ background:var(--warm); top:-20%; left:-15%; animation:driftA 22s ease-in-out infinite alternate; }
   .ambient::after{ background:var(--cool); bottom:-25%; right:-15%; animation:driftB 26s ease-in-out infinite alternate; }
@@ -114,32 +114,90 @@
     padding:0 14px;
     gap:10px;
     cursor:pointer;
+    overflow:hidden;
     -webkit-user-select:none; user-select:none;
     animation: rowIn .32s ease both;
-    transition:transform .15s ease;
+    transition: box-shadow .35s ease, filter .35s ease;
     box-shadow:
-      -8px 10px 24px -14px rgba(255,154,108,0.25),
-      8px 12px 26px -14px rgba(139,123,255,0.28);
+      inset 0 1px 0 rgba(255,255,255,0.30),
+      inset 0 -1.5px 3px rgba(0,0,0,0.30),
+      inset 1px 0 0 rgba(255,255,255,0.08),
+      inset -1px 0 0 rgba(0,0,0,0.15),
+      0 14px 34px -16px rgba(255,154,108,0.30),
+      0 18px 44px -20px rgba(139,123,255,0.32),
+      0 2px 10px -2px rgba(0,0,0,0.45);
   }
-  .row:active{ transform:scale(0.985); }
+  .row:active{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.42),
+      inset 0 -1.5px 4px rgba(0,0,0,0.38),
+      inset 1px 0 0 rgba(255,255,255,0.12),
+      inset -1px 0 0 rgba(0,0,0,0.2),
+      0 8px 22px -14px rgba(255,154,108,0.36),
+      0 10px 26px -16px rgba(139,123,255,0.38),
+      0 1px 6px -1px rgba(0,0,0,0.5);
+    filter:brightness(1.04);
+  }
+  @media (hover:hover) and (pointer:fine){
+    .row:hover{
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.38),
+        inset 0 -1.5px 3px rgba(0,0,0,0.28),
+        inset 1px 0 0 rgba(255,255,255,0.1),
+        inset -1px 0 0 rgba(0,0,0,0.15),
+        0 16px 38px -16px rgba(255,154,108,0.38),
+        0 20px 48px -18px rgba(139,123,255,0.4),
+        0 2px 10px -2px rgba(0,0,0,0.45);
+    }
+  }
   @keyframes rowIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
   .row .glass-bg{
     position:absolute; inset:0; width:100%; height:100%;
     object-fit:fill; border-radius:var(--radius);
-    pointer-events:none; opacity:0.92;
+    pointer-events:none; opacity:0.95;
+    filter:brightness(1.08) contrast(1.14) saturate(1.18);
   }
-  .row .tint{ position:absolute; inset:0; border-radius:var(--radius); background:rgba(8,8,13,0.30); pointer-events:none; }
-  .row:active .tint{ background:rgba(8,8,13,0.44); }
+
+  /* caustic / specular layer — sits on top of the asset, reads as light refracting through thick glass */
+  .row::before{
+    content:''; position:absolute; inset:0; z-index:1;
+    pointer-events:none; border-radius:inherit;
+    background:
+      radial-gradient(120% 90% at 18% 8%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.16) 22%, transparent 46%),
+      radial-gradient(80% 70% at 88% 96%, rgba(180,190,255,0.22) 0%, transparent 55%);
+    mix-blend-mode:overlay;
+    opacity:0.85;
+    transform:translate(0,0) scale(1);
+    transition:transform .5s cubic-bezier(.2,.8,.3,1), opacity .4s ease;
+  }
+  .row:active::before{ transform:translate(3px,-2px) scale(1.015); opacity:1; }
+
+  .row .tint{
+    position:absolute; inset:0; border-radius:var(--radius); pointer-events:none;
+    background:linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(8,8,13,0.20) 30%, rgba(8,8,13,0.36) 100%);
+    -webkit-backdrop-filter:blur(7px) saturate(1.3);
+    backdrop-filter:blur(7px) saturate(1.3);
+  }
+  .row:active .tint{ background:linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(8,8,13,0.28) 30%, rgba(8,8,13,0.48) 100%); }
 
   .row::after{
     content:''; position:absolute; inset:0; border-radius:var(--radius);
-    background:linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.4) 50%, transparent 58%);
-    transform:translateX(-130%);
+    background:linear-gradient(115deg,
+      transparent 38%,
+      rgba(255,255,255,0.22) 46%,
+      rgba(255,255,255,0.5) 50%,
+      rgba(255,255,255,0.22) 54%,
+      transparent 62%);
+    transform:translateX(-140%);
     pointer-events:none; mix-blend-mode:screen; z-index:2;
   }
-  .row.sweep::after{ animation:sweep .55s ease; }
-  @keyframes sweep{ from{transform:translateX(-130%);} to{transform:translateX(130%);} }
+  .row.sweep::after{ animation:sweep .6s ease; }
+  @keyframes sweep{ from{transform:translateX(-140%);} to{transform:translateX(140%);} }
+  @media (prefers-reduced-motion: reduce){
+    .row::before, .row:active::before{ transition:none; }
+    .row.sweep::after{ animation:none; }
+  }
 
   .checkbox{
     display:none; position:relative; z-index:3; flex:none;
@@ -158,8 +216,20 @@
     position:relative; z-index:1; width:var(--icon); height:var(--icon); flex:none;
     display:flex; align-items:center; justify-content:center;
   }
-  .row .icon-wrap img{ width:100%; height:100%; object-fit:contain; }
-  .row .icon-wrap.file-icon{ border-radius:8px; background:rgba(255,255,255,0.15); font-size:14px; font-family:var(--font-mono); }
+  .row .icon-wrap::before{
+    content:''; position:absolute; left:50%; bottom:-3px; width:70%; height:7px;
+    transform:translateX(-50%); border-radius:50%;
+    background:radial-gradient(closest-side, rgba(0,0,0,0.4), transparent 75%);
+    filter:blur(2px); pointer-events:none; z-index:-1;
+  }
+  .row .icon-wrap img{
+    width:100%; height:100%; object-fit:contain;
+    filter:drop-shadow(0 3px 5px rgba(0,0,0,0.4)) drop-shadow(0 1px 0 rgba(255,255,255,0.15));
+    transform:translateY(-1px);
+    transition:transform .35s ease;
+  }
+  .row:active .icon-wrap img{ transform:translateY(0); }
+  .row .icon-wrap.file-icon{ border-radius:8px; background:rgba(255,255,255,0.15); font-size:14px; font-family:var(--font-mono); box-shadow:0 3px 6px -2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
 
   .row .meta{ position:relative; z-index:1; min-width:0; flex:1; }
   .row .name{
@@ -234,11 +304,34 @@
   .picker-row{
     position:relative; height:56px; margin-bottom:8px; border-radius:14px;
     display:flex; align-items:center; gap:10px; padding:0 14px; cursor:pointer;
+    overflow:hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.26),
+      inset 0 -1px 2px rgba(0,0,0,0.28),
+      0 10px 26px -14px rgba(255,154,108,0.26),
+      0 12px 30px -16px rgba(139,123,255,0.28);
+    transition:box-shadow .3s ease;
   }
-  .picker-row .glass-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:fill; border-radius:14px; opacity:0.85; }
-  .picker-row .tint{ position:absolute; inset:0; border-radius:14px; background:rgba(8,8,13,0.34); }
-  .picker-row:active .tint{ background:rgba(8,8,13,0.48); }
-  .picker-row img.icn{ position:relative; z-index:1; width:26px; height:26px; object-fit:contain; }
+  .picker-row::before{
+    content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+    background:radial-gradient(110% 90% at 20% 10%, rgba(255,255,255,0.4) 0%, transparent 42%);
+    mix-blend-mode:overlay; opacity:0.8;
+  }
+  .picker-row .glass-bg{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:fill; border-radius:14px;
+    opacity:0.9; filter:brightness(1.06) contrast(1.1) saturate(1.15);
+  }
+  .picker-row .tint{
+    position:absolute; inset:0; border-radius:14px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(8,8,13,0.26) 35%, rgba(8,8,13,0.4) 100%);
+    -webkit-backdrop-filter:blur(6px) saturate(1.25);
+    backdrop-filter:blur(6px) saturate(1.25);
+  }
+  .picker-row:active .tint{ background:linear-gradient(160deg, rgba(255,255,255,0.03) 0%, rgba(8,8,13,0.34) 35%, rgba(8,8,13,0.5) 100%); }
+  .picker-row img.icn{
+    position:relative; z-index:1; width:26px; height:26px; object-fit:contain;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  }
   .picker-row .pname{ position:relative; z-index:1; color:#fff; font-weight:600; font-size:14.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35); }
   .picker-empty{ text-align:center; color:var(--text-faint); font-family:var(--font-mono); font-size:13px; padding:40px 20px; }
   .picker-footer{
